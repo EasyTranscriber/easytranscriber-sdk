@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/EasyTranscriber/easytranscriber-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/EasyTranscriber/easytranscriber-sdk/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![PyPI version](https://img.shields.io/pypi/v/easytranscriber-sdk.svg)](https://pypi.org/project/easytranscriber-sdk/)
 
 Python and JavaScript/TypeScript REST clients for EasyTranscriber, plus an optional sanitized n8n workflow for transcription and summarization.
 
@@ -11,7 +12,19 @@ Python and JavaScript/TypeScript REST clients for EasyTranscriber, plus an optio
 
 Both SDKs are version 0.1.0. See the [API](https://www.easytranscriber.com/api) and [REST documentation](https://www.easytranscriber.com/docs/api) for service details.
 
-## Install from a local checkout
+## Install Python from PyPI
+
+```sh
+pip install easytranscriber-sdk
+```
+
+The Python package is available on [PyPI](https://pypi.org/project/easytranscriber-sdk/).
+The Python package named `easytranscriber` is unrelated; use `easytranscriber-sdk`.
+
+## Local checkout: Python development and JavaScript installation
+
+Python users can install from source as an alternative for development.
+JavaScript / TypeScript installation uses a local checkout and tarball until an npm release:
 
 ```sh
 git clone https://github.com/EasyTranscriber/easytranscriber-sdk.git
@@ -40,17 +53,6 @@ npm pack
 npm install /absolute/path/to/easytranscriber-sdk/sdk/js/easytranscriber-0.1.0.tgz
 ```
 
-### Registry installation after release
-
-Only use these commands **after a release is confirmed in the respective registry**. They are not a claim that either package is currently published:
-
-```sh
-python -m pip install easytranscriber-sdk==0.1.0
-npm install easytranscriber@0.1.0
-```
-
-The Python package named `easytranscriber` is unrelated; use `easytranscriber-sdk` for Python.
-
 ## Quickstarts
 
 Configure `EASYTRANSCRIBER_API_KEY` in your process environment or server secret manager using an API key from your EasyTranscriber account. Never commit a real key, put it in browser code, or log it. These examples make live API requests and may spend credits; they are not test commands.
@@ -59,9 +61,7 @@ Configure `EASYTRANSCRIBER_API_KEY` in your process environment or server secret
 
 ```python
 import os
-
 from easytranscriber_sdk import EasyTranscriber
-
 with EasyTranscriber(os.environ["EASYTRANSCRIBER_API_KEY"]) as client:
     result = client.transcribe("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
     print(result["transcript"])

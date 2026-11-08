@@ -2,21 +2,20 @@
 
 [![CI](https://github.com/EasyTranscriber/easytranscriber-sdk/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/EasyTranscriber/easytranscriber-sdk/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![PyPI version](https://img.shields.io/pypi/v/easytranscriber-sdk.svg)](https://pypi.org/project/easytranscriber-sdk/)
 
-Version 0.1.0. Python 3.10+; synchronous and asynchronous clients backed by
-HTTPX. This package is prepared for a later release, **not published to PyPI**.
+Python 3.10+; synchronous and asynchronous clients backed by HTTPX.
+Available on [PyPI](https://pypi.org/project/easytranscriber-sdk/).
 The examples run on a trusted server or your own machine, never in a browser.
 
 The Python distribution name is `easytranscriber-sdk`; the import name is
 `easytranscriber_sdk`. The PyPI package named `easytranscriber` belongs to an
-unrelated project and is not this SDK. The npm package remains `easytranscriber`.
+unrelated project and is not this SDK.
 
-## Install from this checkout
-
-From the repository root:
+## Install from PyPI
 
 ```sh
-python -m pip install ./sdk/python
+pip install easytranscriber-sdk
 ```
 
 Create an API key in your EasyTranscriber account and supply it through your
@@ -26,6 +25,18 @@ headers. The SDK does not log keys or requests.
 
 The default base URL is `https://www.easytranscriber.com/api/v1`.
 [REST API documentation](https://www.easytranscriber.com/docs/api).
+
+## Quickstart
+
+These examples make live API requests and may spend credits; they are not test commands.
+
+```python
+import os
+from easytranscriber_sdk import EasyTranscriber
+with EasyTranscriber(os.environ["EASYTRANSCRIBER_API_KEY"]) as client:
+    result = client.transcribe("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+    print(result["transcript"])
+```
 
 ## Transcript and summary
 
@@ -222,6 +233,12 @@ A cached transcript does not incur a transcript charge; its summary still does.
 API rate limits depend on plan: Free/Plus 10, Pro 50, Scale 300 requests/minute.
 
 ## Development and packaging
+
+As an alternative to PyPI, install from a local checkout at the repository root:
+
+```sh
+python -m pip install ./sdk/python
+```
 
 From `sdk/python`, in an isolated Python environment:
 
