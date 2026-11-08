@@ -3,6 +3,7 @@
 [![CI](https://github.com/EasyTranscriber/easytranscriber-sdk/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/EasyTranscriber/easytranscriber-sdk/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![PyPI version](https://img.shields.io/pypi/v/easytranscriber-sdk.svg)](https://pypi.org/project/easytranscriber-sdk/)
+[![npm version](https://img.shields.io/npm/v/easytranscriber.svg)](https://www.npmjs.com/package/easytranscriber)
 
 Python 3.10+; synchronous and asynchronous clients backed by HTTPX.
 Available on [PyPI](https://pypi.org/project/easytranscriber-sdk/).
@@ -16,6 +17,12 @@ unrelated project and is not this SDK.
 
 ```sh
 pip install easytranscriber-sdk
+```
+
+For Node.js 22 or later, use the [JavaScript / TypeScript SDK](../js/README.md):
+
+```sh
+npm install easytranscriber
 ```
 
 Create an API key in your EasyTranscriber account and supply it through your
@@ -234,32 +241,7 @@ API rate limits depend on plan: Free/Plus 10, Pro 50, Scale 300 requests/minute.
 
 ## Development and packaging
 
-As an alternative to PyPI, install from a local checkout at the repository root:
-
-```sh
-python -m pip install ./sdk/python
-```
-
-From `sdk/python`, in an isolated Python environment:
-
-```sh
-python -m pip install -e '.[dev]'
-python -m mypy
-python -m ruff check .
-python -m pytest
-python -m build
-python -m twine check dist/*
-```
-
-Builds emit core metadata 2.4 for compatibility with the declared Twine validation
-toolchain, rather than depending on the build backend's latest metadata default.
-
-The tests exercise HTTP requests with RESPX and a local loopback server; no real
-API key, production access, or credits are needed. The wheel includes `py.typed`.
-To smoke-test the built wheel instead of editable sources, create a separate
-environment, install `dist/easytranscriber_sdk-0.1.0-py3-none-any.whl` and
-`pytest pytest-asyncio`, then run `python -m pytest tests/test_loopback.py` from
-this directory. Do not set `PYTHONPATH=src` for that check.
+See [CONTRIBUTING.md](../../CONTRIBUTING.md) for development, tests and package verification.
+Tests use fixtures and loopback HTTP, not production credentials or credits.
 
 Licensed under the [MIT License](LICENSE). Copyright (c) 2026 EasyTranscriber.
-Package publication and release ownership remain separate decisions.

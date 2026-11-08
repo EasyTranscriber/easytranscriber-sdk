@@ -3,6 +3,7 @@
 [![CI](https://github.com/EasyTranscriber/easytranscriber-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/EasyTranscriber/easytranscriber-sdk/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![PyPI version](https://img.shields.io/pypi/v/easytranscriber-sdk.svg)](https://pypi.org/project/easytranscriber-sdk/)
+[![npm version](https://img.shields.io/npm/v/easytranscriber.svg)](https://www.npmjs.com/package/easytranscriber)
 
 Python and JavaScript/TypeScript REST clients for EasyTranscriber, plus an optional sanitized n8n workflow for transcription and summarization.
 
@@ -12,7 +13,9 @@ Python and JavaScript/TypeScript REST clients for EasyTranscriber, plus an optio
 
 Both SDKs are version 0.1.0. See the [API](https://www.easytranscriber.com/api) and [REST documentation](https://www.easytranscriber.com/docs/api) for service details.
 
-## Install Python from PyPI
+## Install
+
+### Python
 
 ```sh
 pip install easytranscriber-sdk
@@ -21,37 +24,13 @@ pip install easytranscriber-sdk
 The Python package is available on [PyPI](https://pypi.org/project/easytranscriber-sdk/).
 The Python package named `easytranscriber` is unrelated; use `easytranscriber-sdk`.
 
-## Local checkout: Python development and JavaScript installation
-
-Python users can install from source as an alternative for development.
-JavaScript / TypeScript installation uses a local checkout and tarball until an npm release:
+### JavaScript / TypeScript
 
 ```sh
-git clone https://github.com/EasyTranscriber/easytranscriber-sdk.git
-cd easytranscriber-sdk
+npm install easytranscriber
 ```
 
-Alternatively, use an existing local checkout. From the repository root, install Python in a virtual environment:
-
-```sh
-python3 -m venv .venv
-. .venv/bin/activate
-python -m pip install ./sdk/python
-```
-
-For JavaScript / TypeScript, build and pack the client:
-
-```sh
-cd sdk/js
-npm ci
-npm pack
-```
-
-`npm pack` builds the package; it does not publish it. From your server application's directory, install the generated tarball, replacing the path with your checkout's actual location:
-
-```sh
-npm install /absolute/path/to/easytranscriber-sdk/sdk/js/easytranscriber-0.1.0.tgz
-```
+Available on [npm](https://www.npmjs.com/package/easytranscriber). Requires Node.js 22 or later; use it on the server, not in browser code.
 
 ## Quickstarts
 

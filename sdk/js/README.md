@@ -2,30 +2,26 @@
 
 [![CI](https://github.com/EasyTranscriber/easytranscriber-sdk/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/EasyTranscriber/easytranscriber-sdk/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![npm version](https://img.shields.io/npm/v/easytranscriber.svg)](https://www.npmjs.com/package/easytranscriber)
+[![PyPI version](https://img.shields.io/pypi/v/easytranscriber-sdk.svg)](https://pypi.org/project/easytranscriber-sdk/)
 
 Version 0.1.0. A server-side client for all ten EasyTranscriber REST v1 endpoints, using native `fetch` with no runtime dependencies. Requires Node.js 22 or later. Includes ESM, CommonJS, and separate declaration exports for both module formats.
 
-This package is **not published**. Install from a local checkout or a locally built tarball; the package name alone is not an installation instruction for a registry release.
+Available on [npm](https://www.npmjs.com/package/easytranscriber).
 
-Licensed under the [MIT License](LICENSE). Copyright (c) 2026 EasyTranscriber. Package publication and release ownership remain separate decisions.
+Licensed under the [MIT License](LICENSE). Copyright (c) 2026 EasyTranscriber.
 
-## Build and install locally
-
-From this checkout's `sdk/js` directory:
+## Install from npm
 
 ```sh
-npm install
-npm run build
-npm pack
+npm install easytranscriber
 ```
 
-Then, from your server application's directory, install the generated file using its actual local path:
+For Python 3.10 or later, use the [Python SDK](../python/README.md):
 
 ```sh
-npm install /absolute/path/to/checkout/sdk/js/easytranscriber-0.1.0.tgz
+pip install easytranscriber-sdk
 ```
-
-`npm pack` runs the build through `prepack`. It does not publish anything.
 
 Create an API key at [Dashboard → API Keys](https://www.easytranscriber.com/dashboard/api-keys). Configure `EASYTRANSCRIBER_API_KEY` through your server's secret manager or environment. The SDK sends `Authorization: Bearer <key>`; keys start with `et_`. It does not read the environment automatically.
 
@@ -129,7 +125,7 @@ const comments = await client.comments({
 
 `channelSearch`, `playlistVideos`, and `comments` also accept `page_token` for an explicitly requested next page. Search and channel search cost 1 credit per call/page. Channel resolve and latest return no `credits_used` field; `credits` returns only `{ balance }`. Latest is the RSS feed's recent videos, not a paginated archive. Comments contain top-level threads and available replies; `reply_count` may exceed the included replies.
 
-`resolveChannel().subscribers` is a **string or null**: this follows the implemented server, which passes through YouTube's decimal string. The OpenAPI file currently describes this field as an integer; the SDK deliberately does not coerce it. Nullable `video_title`, thumbnails, and channel details are present in the implemented responses even where OpenAPI does not list them as required.
+`resolveChannel().subscribers` is a **string or null**: the SDK preserves YouTube's decimal string rather than coercing it to a number. Nullable `video_title`, thumbnails, and channel details remain null when unavailable.
 
 ## Errors, retries, and timeouts
 
@@ -174,21 +170,11 @@ The timeout covers each attempt, including response body reading, not the whole 
 
 ## Development and verification
 
-From `sdk/js`:
-
-```sh
-npm install
-npm run typecheck
-npm run lint
-npm run build
-npm test
-npm run test:package
-```
-
-Tests require the build output. Unit tests inject mocked fetch responses and cover all endpoint mappings, JSON parsing, nullable fields, credit receipts, pagination, errors, timeouts, 429 backoff and `Retry-After`. The package test packs the built SDK, installs the tarball in a temporary consumer, checks both ESM and CommonJS over loopback HTTP, and compiles `.mts`/`.cts` consumers against their respective declaration exports. It does not call the live API, need a real API key, or publish a package.
+See [CONTRIBUTING.md](../../CONTRIBUTING.md) for development, tests and package verification.
+Tests use fixtures and loopback HTTP, not production credentials or credits.
 
 See the public [REST API documentation](https://www.easytranscriber.com/docs/api) for the service contract and [API overview](https://www.easytranscriber.com/api) for API access. This repository contains the clients, not the hosted service implementation.
 
 ## Changes
 
-0.1.0: initial local package with ten REST methods, typed models, JSON summaries, explicit pagination, credit receipts, bounded 429-only retries, and dual-module builds. No registry publication is claimed.
+0.1.0: initial npm release with ten REST methods, typed models, JSON summaries, explicit pagination, credit receipts, bounded 429-only retries, and dual-module builds.
