@@ -1,0 +1,385 @@
+{
+  "id": "etYouTubeSummary01",
+  "name": "YouTube video → transcript + summary → Notion / Google Sheets",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "00000001-0000-4000-8000-000000000000",
+      "name": "Run manually",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Edit only these non-secret inputs. Keep credentials in n8n's credential store.\nreturn [{ json: {\n  video_url: '',\n  summary_language: 'English',\n  destination: 'notion', // 'notion' or 'sheets'\n  run_key: '', // Stable, unique label for this intentional export, e.g. research-2026-11-07-01\n  notion_parent_page_id: '', // Plain page UUID, not a database ID\n  sheets_spreadsheet_id: '',\n  sheets_tab: 'Transcripts'\n} }];"
+      },
+      "id": "00000002-0000-4000-8000-000000000000",
+      "name": "Configure input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const c = $input.first().json;\nif ($input.all().length !== 1) throw new Error('Run one video per execution.');\nif (typeof c.video_url !== 'string' || !/^https:\\/\\/(?:www\\.|m\\.)?(?:youtube\\.com|youtu\\.be)\\//.test(c.video_url)) throw new Error('Set video_url to an HTTPS YouTube video URL.');\nif (!['notion', 'sheets'].includes(c.destination)) throw new Error('destination must be notion or sheets.');\nif (typeof c.run_key !== 'string' || !/^[A-Za-z0-9_-]{1,80}$/.test(c.run_key)) throw new Error('Set run_key to 1-80 letters, digits, underscores or hyphens. Check the destination for this key before running.');\nconst languages = [\"Auto\",\"English\",\"Spanish\",\"Hindi\",\"Chinese\",\"Arabic\",\"French\",\"Russian\",\"Portuguese\",\"Urdu\",\"German\",\"Japanese\",\"Indonesian\",\"Vietnamese\",\"Korean\",\"Turkish\",\"Italian\",\"Polish\",\"Dutch\",\"Persian\",\"Bulgarian\",\"Czech\",\"Danish\",\"Finnish\",\"Greek\",\"Hebrew\",\"Hungarian\",\"Malay\",\"Norwegian\",\"Romanian\",\"Slovak\",\"Swedish\",\"Tagalog\",\"Thai\",\"Ukrainian\",\"Bengali\",\"Punjabi\",\"Tamil\",\"Telugu\",\"Marathi\",\"Gujarati\",\"Kannada\",\"Malayalam\",\"Swahili\",\"Afrikaans\",\"Catalan\",\"Croatian\",\"Serbian\",\"Slovenian\",\"Lithuanian\",\"Latvian\",\"Estonian\",\"Icelandic\",\"Welsh\",\"Albanian\",\"Macedonian\",\"Azerbaijani\",\"Kazakh\",\"Armenian\",\"Georgian\",\"Amharic\",\"Nepali\",\"Sinhala\",\"Khmer\",\"Burmese\",\"Mongolian\"];\nif (!languages.includes(c.summary_language)) throw new Error('Use an exact supported language name such as English, Spanish, or Auto, not a language code.');\nif (c.destination === 'notion' && !/^(?:[a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i.test(c.notion_parent_page_id)) throw new Error('Set notion_parent_page_id to a page UUID.');\nif (c.destination === 'sheets' && (!/^[A-Za-z0-9_-]+$/.test(c.sheets_spreadsheet_id) || typeof c.sheets_tab !== 'string' || !c.sheets_tab.trim() || c.sheets_tab.length > 100)) throw new Error('Set sheets_spreadsheet_id and an existing sheets_tab (1-100 characters).');\nreturn [{ json: c }];"
+      },
+      "id": "00000003-0000-4000-8000-000000000000",
+      "name": "Validate input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "options": {
+          "timeout": 360000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        },
+        "url": "https://www.easytranscriber.com/api/v1/transcribe",
+        "jsonBody": "={{ JSON.stringify({ url: $json.video_url }) }}"
+      },
+      "id": "00000004-0000-4000-8000-000000000000",
+      "name": "Get transcript",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        660,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_EASYTRANSCRIBER_CREDENTIAL",
+          "name": "EasyTranscriber Authorization"
+        }
+      },
+      "retryOnFail": false,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const t = $input.first().json;\nif (typeof t.transcript !== 'string' || !t.transcript || typeof t.video_id !== 'string' || !t.video_id || !(typeof t.video_title === 'string' || t.video_title === null) || typeof t.method !== 'string' || typeof t.cached !== 'boolean' || !Number.isFinite(t.credits_used)) throw new Error('Unexpected transcript response; stopping before summary billing.');\nreturn [{ json: { ...$('Validate input').first().json, transcription: t } }];"
+      },
+      "id": "00000005-0000-4000-8000-000000000000",
+      "name": "Preserve transcript",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "options": {
+          "timeout": 360000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        },
+        "url": "https://www.easytranscriber.com/api/v1/summarize",
+        "jsonBody": "={{ JSON.stringify({ transcript: $json.transcription.transcript, video_id: $json.transcription.video_id, language: $json.summary_language }) }}"
+      },
+      "id": "00000006-0000-4000-8000-000000000000",
+      "name": "Summarize transcript",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1100,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_EASYTRANSCRIBER_CREDENTIAL",
+          "name": "EasyTranscriber Authorization"
+        }
+      },
+      "retryOnFail": false,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const s = $input.first().json;\nconst c = $('Preserve transcript').first().json;\nconst t = c.transcription;\nif (typeof s.summary !== 'string' || !s.summary || !(typeof s.video_id === 'string' || s.video_id === null) || !Number.isFinite(s.credits_used)) throw new Error('Unexpected JSON summary response; no destination writes attempted.');\nconst metadata = {\n  run_key: c.run_key, video_url: c.video_url, video_id: t.video_id,\n  video_title: t.video_title, method: t.method, cached: t.cached,\n  transcript_credits_used: t.credits_used, summary_credits_used: s.credits_used,\n  total_credits_used: t.credits_used + s.credits_used,\n  summary_video_id: s.video_id, summary_language: c.summary_language\n};\n// Keep UTF-16 surrogate pairs together; joining chunks exactly reconstructs input.\nfunction chunks(text, limit) {\n  const out = [];\n  for (let start = 0; start < text.length;) {\n    let end = Math.min(start + limit, text.length);\n    const last = text.charCodeAt(end - 1);\n    if (end < text.length && last >= 0xD800 && last <= 0xDBFF) end--;\n    out.push(text.slice(start, end));\n    start = end;\n  }\n  return out;\n}\nconst sections = [['metadata', JSON.stringify(metadata)], ['summary', s.summary], ['transcript', t.transcript]];\nif (c.destination === 'notion') {\n  const blocks = [];\n  for (const [section, text] of sections) {\n    blocks.push({ object: 'block', type: 'heading_2', heading_2: { rich_text: [{ type: 'text', text: { content: section } }] } });\n    for (const textPart of chunks(text, 1600)) blocks.push({ object: 'block', type: 'paragraph', paragraph: { rich_text: [{ type: 'text', text: { content: textPart } }] } });\n  }\n  const batches = [];\n  let batch = [], size = 0;\n  // JSON UTF-16 length * 3 bounds UTF-8 bytes, including escaped control characters.\n  // Leave ample space for parent/properties outside children; <=80 children per page.\n  for (const block of blocks) {\n    const blockSize = JSON.stringify(block).length + 1;\n    if (batch.length && (batch.length >= 80 || size + blockSize > 140000)) {\n      batches.push(batch); batch = []; size = 0;\n    }\n    batch.push(block); size += blockSize;\n  }\n  if (batch.length) batches.push(batch);\n  return batches.map((children, index) => ({ json: {\n    destination: 'notion', run_key: c.run_key, part: index + 1, parts: batches.length,\n    body: { parent: { page_id: c.notion_parent_page_id }, properties: {\n      title: { type: 'title', title: [{ type: 'text', text: { content: c.run_key + ' | ' + t.video_id + ' | part ' + (index + 1) + '/' + batches.length } }] }\n    }, children }\n  }, pairedItem: { item: 0 } }));\n}\nconst rows = [];\nfor (const [section, text] of sections) {\n  const parts = chunks(text, 40000);\n  parts.forEach((part, index) => rows.push([c.run_key, t.video_id, section, index + 1, parts.length, part]));\n}\n// Bound request size as well as cell size. Multiple appends are explicitly numbered.\nconst batches = [];\nlet batch = [], size = 0;\nfor (const row of rows) {\n  const rowSize = JSON.stringify(row).length + 1;\n  if (batch.length && size + rowSize > 450000) { batches.push(batch); batch = []; size = 0; }\n  batch.push(row); size += rowSize;\n}\nif (batch.length) batches.push(batch);\nconst range = \"'\" + c.sheets_tab.replace(/'/g, \"''\") + \"'!A:F\";\nconst url = 'https://sheets.googleapis.com/v4/spreadsheets/' + encodeURIComponent(c.sheets_spreadsheet_id) + '/values/' + encodeURIComponent(range) + ':append?valueInputOption=RAW&insertDataOption=INSERT_ROWS';\nreturn batches.map((values, index) => ({ json: {\n  destination: 'sheets', run_key: c.run_key, part: index + 1, parts: batches.length,\n  url, body: { majorDimension: 'ROWS', values }\n}, pairedItem: { item: 0 } }));"
+      },
+      "id": "00000007-0000-4000-8000-000000000000",
+      "name": "Prepare destination writes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.destination === 'notion' }}",
+              "operation": "equal",
+              "value2": true
+            }
+          ]
+        },
+        "combineOperation": "all"
+      },
+      "id": "00000008-0000-4000-8000-000000000000",
+      "name": "Choose Notion",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/pages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 360000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 1000
+            }
+          }
+        }
+      },
+      "id": "00000009-0000-4000-8000-000000000000",
+      "name": "Create Notion pages",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1780,
+        -160
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_NOTION_CREDENTIAL",
+          "name": "Notion Authorization"
+        }
+      },
+      "retryOnFail": false,
+      "onError": "stopWorkflow"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.url }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 360000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 1000
+            }
+          }
+        }
+      },
+      "id": "00000010-0000-4000-8000-000000000000",
+      "name": "Append Google Sheets rows",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1780,
+        160
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_GOOGLE_SHEETS_CREDENTIAL",
+          "name": "Google Sheets OAuth2"
+        }
+      },
+      "retryOnFail": false,
+      "onError": "stopWorkflow"
+    }
+  ],
+  "connections": {
+    "Run manually": {
+      "main": [
+        [
+          {
+            "node": "Configure input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configure input": {
+      "main": [
+        [
+          {
+            "node": "Validate input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate input": {
+      "main": [
+        [
+          {
+            "node": "Get transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get transcript": {
+      "main": [
+        [
+          {
+            "node": "Preserve transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preserve transcript": {
+      "main": [
+        [
+          {
+            "node": "Summarize transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize transcript": {
+      "main": [
+        [
+          {
+            "node": "Prepare destination writes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare destination writes": {
+      "main": [
+        [
+          {
+            "node": "Choose Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Choose Notion": {
+      "main": [
+        [
+          {
+            "node": "Create Notion pages",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append Google Sheets rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "tags": [],
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "description": "Manually transcribe one YouTube video, generate a separately billed JSON summary, then preserve all text and metadata in chunked Notion pages or Google Sheets rows. Configure credentials and destination before running."
+}

@@ -1,0 +1,47 @@
+{
+  "name": "easytranscriber",
+  "version": "0.1.0",
+  "description": "Server-side TypeScript client for the EasyTranscriber REST API",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EasyTranscriber/easytranscriber-sdk.git",
+    "directory": "sdk/js"
+  },
+  "homepage": "https://github.com/EasyTranscriber/easytranscriber-sdk/tree/main/sdk/js#readme",
+  "bugs": {
+    "url": "https://github.com/EasyTranscriber/easytranscriber-sdk/issues"
+  },
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    }
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "engines": { "node": ">=22" },
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json && node scripts/commonjs.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src",
+    "test": "node --test test/client.test.mjs",
+    "test:package": "node test/packed-smoke.mjs",
+    "prepack": "npm run build"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.1",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.48.0"
+  }
+}

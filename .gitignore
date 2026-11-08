@@ -1,0 +1,27 @@
+# Local dependencies and build output
+node_modules/
+dist/
+build/
+*.tgz
+*.egg-info/
+.venv*/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage/
+.coverage
+htmlcov/
+
+# Local credentials and machine state
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+.DS_Store
+
+# Generated offline n8n fixtures and execution data
+integrations/n8n/.smoke/
